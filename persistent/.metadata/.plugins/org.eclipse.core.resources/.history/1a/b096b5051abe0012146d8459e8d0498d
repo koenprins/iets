@@ -1,0 +1,143 @@
+package com.example.thales;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class Database extends SQLiteOpenHelper {
+	
+	// Database Name
+    private static final String DATABASE_NAME = "Informatie";
+    // Database Version
+    private static final int DATABASE_VERSION = 1;
+    // Table
+    private static final String PERSONS = "persons";
+    private static final String ROOM = "rooms";
+    private static final String PRIORITY = "priority";
+    private static final String DECK = "deck";
+    
+    // Table Columns persons
+    private static final String KEY_PERSONID = "_id";
+    private static final String KEY_FIRSTNAME = "firstname";
+    private static final String KEY_LASTNAME = "lastname";
+    private static final String KEY_ROOM = "room";
+    private static final String KEY_FUNCTION = "function";
+    
+    // Table Columns rooms
+    private static final String KEY_ROOMID = "_id";
+    private static final String KEY_ROOMNAME = "roomname"; 
+    private static final String KEY_X = "xCoordinate"; 
+    private static final String KEY_Y = "yCoordinate"; 
+    
+    // Table Columns Deck
+    private static final String KEY_DECK = "deck"; 
+    private static final String KEY_DECKNAME = "deckname";
+    
+    // Table Columns priority
+    private static final String KEY_PRIORITY = "priority";
+    private static final String KEY_COLOUR = "colour";
+    
+    
+	public Database(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+	
+	// Creating Tables
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+    	
+    	String CREATE_ALERT_TABLE = "CREATE TABLE " + PRIORITY
+        		+ "("
+        		+ KEY_PRIORITY + " INTEGER PRIMARY KEY,"
+        		+ KEY_COLOUR + " TEXT"
+        		+ ")";
+        db.execSQL(CREATE_ALERT_TABLE);
+ 
+        String CREATE_DECK_TABLE = "CREATE TABLE " + DECK
+        		+ "("
+        		+ KEY_DECK + " INTEGER PRIMARY KEY,"
+        		+ KEY_DECKNAME + " TEXT"
+        		+ ")";
+        db.execSQL(CREATE_DECK_TABLE);
+    	
+        String CREATE_ROOM_TABLE = "CREATE TABLE " + ROOM
+        		+ "("
+        		+ KEY_ROOMID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+        		+ KEY_ROOMNAME + " TEXT,"
+        		+ KEY_X + " INTEGER,"
+        		+ KEY_Y + " INTEGER,"
+        		+ KEY_DECK + " INTEGER," 
+        		+ KEY_PRIORITY + " INTEGER, "
+        		+ "FOREIGN KEY("+ KEY_PRIORITY + ") REFERENCES " + PRIORITY + "("+ KEY_PRIORITY + "), "
+        		+ "FOREIGN KEY("+ KEY_DECK + ") REFERENCES " + DECK + "(" + KEY_DECK + ") "
+        		+ ")";
+        db.execSQL(CREATE_ROOM_TABLE);
+        
+        String CREATE_PERSON_TABLE = "CREATE TABLE " + PERSONS 
+        		+ "("
+                + KEY_PERSONID + " INTEGER PRIMARY KEY AUTOINCREMENT," 
+        		+ KEY_FIRSTNAME + " TEXT,"
+                + KEY_LASTNAME + " TEXT," 	
+        		+ KEY_ROOM + " INTEGER,"
+                + KEY_FUNCTION + " TEXT, " 
+                + "FOREIGN KEY("+ KEY_ROOM + ") REFERENCES " + ROOM + "("+ KEY_ROOMID + ") "
+                + ")";
+        db.execSQL(CREATE_PERSON_TABLE);
+        
+    }
+ 
+    // Upgrading database
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Drop older table if existed
+        db.execSQL("DROP TABLE IF EXISTS " + PERSONS);
+        db.execSQL("DROP TABLE IF EXISTS " + PRIORITY);
+        db.execSQL("DROP TABLE IF EXISTS " + DECK);
+        db.execSQL("DROP TABLE IF EXISTS " + ROOM);
+        // Create tables again
+        onCreate(db);
+    }
+    
+    public int AmmountOfRooms(int deckNumber){
+    	int keyid = 0;
+    	
+    	SQLiteDatabase db = this.getWritableDatabase();
+    	String selectQuery = "SELECT SUM(" + KEY_ROOMID + ") FROM " + ROOM + " WHERE " + KEY_DECK + " = '" + deckNumber + "'";
+    	
+    	Cursor cursor = db.rawQuery(selectQuery, null);
+    	if (cursor.moveToFirst()) {
+            do {
+            	keyid = cursor.getInt(0);
+            } while (cursor.moveToNext());
+        }
+    	return keyid;
+    }
+    
+    public Room getRoom(int x, int y, int z){
+    	Room room = null;
+    	SQLiteDatabase db = this.getWritableDatabase();
+    	String selectQuery = "SELECT " + KEY_ROOMNAME + ", " + KEY_X + ", " + KEY_Y + ", " + KEY_DECK + ", " + KEY_PRIORITY + " FROM " + ROOM + " WHERE " + KEY_X + " ='" + x + "' AND " + KEY_Y + " ='" + y + "' AND " + KEY_DECK + " ='" + z + "'";
+    	Cursor cursor = db.rawQuery(selectQuery, null);
+    	if (cursor.moveToFirst()) {
+            do {
+            	room = new Room(cursor.getString(0), cursor.getInt(1), cursor.getInt(2), cursor.getInt(3), cursor.getInt(4));
+            } while (cursor.moveToNext());
+        }
+    	return room;
+    }
+    
+    public void InsertRoom(String name, int x, int y, int deck, int priority){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_ROOMNAME, name);
+       	values.put(KEY_X, x);
+       	values.put(KEY_Y, y);
+       	values.put(KEY_DECK, deck);
+       	values.put(KEY_PRIORITY, priority);
+       	db.insert(ROOM, null, values);
+        db.close();
+    }
+    
+}

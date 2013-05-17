@@ -1,0 +1,75 @@
+package com.example.persistent;
+
+import android.content.Context;
+import android.content.res.Resources;
+
+import android.util.AttributeSet;
+
+public class RoomView extends TileView {
+
+	private static final int NROFDRAWABLES = 4;
+	
+	public static final int WOMBAT = 1;
+	public static final int LEAF = 2;
+	public static final int ROCK = 3;
+	public static final int CELL = 4;
+	
+	private Room [][] rooms ;
+
+	public RoomView(Context context, AttributeSet attrs) {
+		super(context, attrs);
+	}
+
+	public RoomView(Context context, AttributeSet attrs, int defStyle) {
+		super(context, attrs, defStyle);
+	}
+
+	public void initNewGame() {
+		rooms = new Room [xAs][yAs];
+		for (int i = 0 ; i< xAs; i++)
+			for (int j = 0; j < yAs; j++)
+				rooms[i][j] = null;
+
+		Resources r = this.getContext().getResources();
+
+		resetTiles(NROFDRAWABLES + 1); 
+		loadTile(WOMBAT, r.getDrawable(R.drawable.start));
+		loadTile(LEAF, r.getDrawable(R.drawable.start));
+		loadTile(ROCK, r.getDrawable(R.drawable.start));
+		loadTile(CELL, r.getDrawable(R.drawable.start));
+
+		rooms[0][0] = new Room("", 123, 123, 123, 123); 
+
+		
+		update(); 
+		invalidate(); 
+	}
+
+	/**
+	 * Handles the basic update: the visualization is updated according to objects on the game board
+	 * From the game objects the visualization is copied to the tile array
+	 */
+	public void update() {
+		for (int i=0; i< xAs; i++)
+			for (int j = 0; j<yAs; j++){
+				//if (rooms[i][j] == null) {
+					setTile(CELL, i,j); /* background tile */
+				//} else {
+					//setTile(1,i,j);
+				//}
+			}
+	}
+	
+    
+    public void onSizeChanged(int w, int h, int oldw, int oldh){
+        super.onSizeChanged(w,h,oldw, oldh);
+   }
+
+	public void touched(int x, int y){
+		update();
+		invalidate(); 
+	}
+
+}
+
+

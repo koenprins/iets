@@ -1,0 +1,36 @@
+package com.example.thales;
+
+public class Room {
+	private String roomName;
+	private int x;
+	private int y;
+	private int deck;
+	private int priority;
+	
+	public Room(String roomName, int x, int y, int deck, int priority){
+		this.roomName = roomName;
+		this.x = x;
+		this.y = y;
+		this.deck = deck;
+		this.priority = priority;
+	}
+	
+	public String getRoomName(){
+		return roomName;
+	}
+	public int getX(){
+		return x;
+	}
+	public int getY(){
+		return y;
+	}
+	public int getDeck(){
+		return deck;
+	}
+	public int getPriority(){
+		return priority;
+	}
+	
+}
+
+

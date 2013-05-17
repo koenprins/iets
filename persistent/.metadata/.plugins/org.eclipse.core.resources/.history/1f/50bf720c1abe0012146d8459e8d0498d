@@ -1,0 +1,23 @@
+package com.example.thales;
+
+public class Deck {
+	private String name;
+	private int deckNumber;
+	private int ammountOfChambers;
+	
+	public Deck(String name, int deckNumber, Database db){
+		this.name = name;
+		this.deckNumber = deckNumber;
+		ammountOfChambers = db.AmmountOfRooms(deckNumber);
+	}
+	
+	public String getName(){
+		return name;
+	}
+	
+	public int aantalKamers(Database db){
+		return ammountOfChambers;
+	}
+}
+
+

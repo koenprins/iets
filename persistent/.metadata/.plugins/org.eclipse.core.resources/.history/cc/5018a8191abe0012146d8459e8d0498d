@@ -1,0 +1,188 @@
+package com.example.thales;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+
+/**
+ * @author Mitch Tijink
+ * Large parts of this class have been adapted from the Snake example in the Android Example library
+ * TileView: a View-variant designed for handling arrays of drawables
+ * 
+ */
+public abstract class TileView extends View {
+	private static final String TAG = "TileView";
+	private static final int TILESIZE = 20;
+	
+    /**
+     * mXTileCount number of tiles in x-dimension
+     * mYTileCount number of tiles in y-dimension
+     * Their initial values are predefined in FIXED_GRID mode (here below)
+     * Their initial values are computed in VARIABLE_GRID mode on the basis of mTileSize
+     */
+    protected int xAs = 8; 
+    protected int yAs = 12;
+
+    /**
+     * mTileSize size of the tile
+     * The initial value is fixed VARIABLE_GRID mode
+     * The value is computed in FIXED_GRID mode, the fill up the screen as much as possible
+     */
+
+    protected int tileSize = TILESIZE;
+
+    /**
+     * There is a border around the tile grid
+     * mXOffset x-offset in pixels: x-offset of first tile
+     * mYOffset y-offset in pixels: y-offset of first tile
+     */
+    protected int xBorder;
+    protected int yBorder;
+
+
+    /**
+     * A hash that maps integer handles specified by the subclasser to the
+     * drawable that will be used for that reference
+     */
+    private Bitmap[] drawableArray; 
+
+    /**
+     * A two-dimensional array of integers in which the number represents the
+     * index of the tile in the mTileArray that should be drawn at that location
+     */
+    private int[][] matrix;
+
+    private final Paint paint = new Paint();
+
+
+    public TileView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+
+        tileSize = TILESIZE;
+        matrix = new int[xAs][yAs];
+        clearTiles();
+    }
+
+    public TileView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
+        tileSize = TILESIZE;
+        matrix = new int[xAs][yAs];
+        clearTiles();
+        Log.d( TAG, "initTileView( " + tileSize + " )" );
+  }
+    
+
+    /**
+     * Rests the internal array of Bitmaps used for drawing tiles, and
+     * sets the maximum index of tiles to be inserted
+     * 
+     * @param tilecount the maximum number of tiles to be drawn
+     */
+    
+    public void resetTiles(int tilecount) {
+    	drawableArray = new Bitmap[tilecount];
+    }
+  
+    /**
+     * Function to set the specified Drawable as the tile for a particular
+     * integer key.
+     * 
+     * @param key
+     * @param tile
+     */
+    public void loadTile(int key, Drawable tile) {
+        Bitmap bitmap = Bitmap.createBitmap(tileSize, tileSize, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        tile.setBounds(0, 0, tileSize, tileSize);
+        tile.draw(canvas);
+        
+        drawableArray[key] = bitmap;
+    }
+
+    /**
+     * Resets all tiles to 0 (empty)
+     * 
+     */
+    public void clearTiles() {
+        for (int x = 0; x < xAs; x++) {
+            for (int y = 0; y < yAs; y++) {
+                setTile(0, x, y);
+            }
+        }
+    }
+
+    /**
+     * Used to indicate that a particular tile (set with loadTile and referenced
+     * by an integer) should be drawn at the given x/y coordinates during the
+     * next invalidate/draw cycle.
+     * 
+     * @param tileindex
+     * @param x
+     * @param y
+     */
+    public void setTile(int tileindex, int x, int y) {
+        matrix[x][y] = tileindex;
+    }
+
+
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		int x = (int) ((event.getX() - xBorder) / tileSize);
+		int y = (int) ((event.getY() - yBorder) / tileSize);
+		if (x < xAs && y < yAs
+				&& (event.getX() - xBorder) >= 0
+				&& (event.getY() - yBorder) >= 0) {  /* Game Board touched */
+			Log.d(TAG, "Touched (" + x +", " + y + ")\n"  );
+			touched(x, y);
+		}
+		return super.onTouchEvent(event);
+	}
+	
+	/**
+	 * method to handle tile touch.
+	 * @param x the x-coordinate of the tile touched
+	 * @param y the y-coordinate of the tile touched
+	 */
+	public abstract void touched(int x, int y);
+    
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+    	
+    	if ( w==0 || h ==0) return;
+    	
+     	tileSize = Math.min((int) Math.floor(w / xAs), (int) Math.floor(h / yAs));
+    	
+		xBorder = ((w - (tileSize * xAs)) / 2);
+		yBorder = ((h - (tileSize * yAs)) / 2);
+
+		matrix = new int[xAs][yAs];
+		clearTiles();
+    }
+
+    @Override
+    public void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        for (int x = 0; x < xAs; x++) {
+            for (int y = 0; y < yAs; y++) {
+                if (matrix[x][y] > 0) {
+                    canvas.drawBitmap(drawableArray[matrix[x][y]], 
+                    		xBorder + x * tileSize,
+                    		yBorder + y * tileSize,
+                    		paint);
+                }
+            }
+        }
+
+    }
+
+}
+
+

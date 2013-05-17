@@ -1,0 +1,31 @@
+package com.example.thales;
+
+import android.os.Bundle;
+import android.app.Activity;
+import android.view.Menu;
+
+public class MainActivity extends Activity {
+	private Database db;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		db = new Database(this);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.activity_main, menu);
+		return true;
+	}
+	
+	public void filldb(Database db){
+		for(int x = 0; x < 10; x++){
+			for(int y = 0; y < 4; y++){
+				for(int z = 0; z < 2; z++){
+					db.InsertRoom("room", x, y, z, ((int) Math.random() * 10 + 1));
+				}
+			}
+		}
+	}
+}
